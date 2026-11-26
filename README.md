@@ -24,16 +24,16 @@ Il permet de **poser des questions en français** sur des manuels techniques, **
 
 | Fonctionnalité | Statut |
 |---|---|
-| Ingestion de documents PDF | 🔄 Phase 2 |
-| RAG textuel avec citations vérifiables | 🔄 Phase 3-4 |
-| Analyse d'images et schémas (VLM) | 🔄 Phase 5 |
-| Consultation équipements via MCP | 🔄 Phase 6 |
-| Agent intelligent LangGraph | 🔄 Phase 7 |
-| Validation humaine des tickets | 🔄 Phase 8 |
-| Sécurité et contrôle d'accès | 🔄 Phase 9 |
-| Évaluation et fine-tuning | 🔄 Phase 10 |
-| Interface Streamlit | 🔄 Phase 11 |
-| Déploiement Docker complet | 🔄 Phase 12 |
+| Ingestion de documents PDF | ✅ Phase 2 (`backend/ingestion/`) |
+| RAG textuel avec citations vérifiables | ✅ Phase 3-4 (`backend/rag/`, `backend/llm/`) |
+| Analyse d'images et schémas (VLM) | ✅ Phase 5 (`backend/vision/`) |
+| Consultation équipements via MCP | ✅ Phase 6 (`backend/mcp/`, `mcp_server/`) |
+| Agent intelligent LangGraph | ✅ Phase 7 (`backend/agent/`) |
+| Validation humaine des tickets | ✅ Phase 8 (`backend/agent/human_approval.py`) |
+| Sécurité et contrôle d'accès | ✅ Phase 9 (`backend/security/`) |
+| Évaluation et fine-tuning | ✅ Phase 10 (`evaluation/`, `fine_tuning/`) |
+| Interface Streamlit & API FastAPI | ✅ Phase 11 (`frontend/app.py`, `backend/api/`) |
+| Docker, Tests & Documentation | ✅ Phase 12 (`docker/`, `tests/`, `docs/`) |
 
 ---
 

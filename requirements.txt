@@ -1,6 +1,6 @@
 # =============================================================================
 # MaintiDoc — Dépendances Python
-# Testé sur Python 3.13 / Apple M2 8Go
+# Compatible Python 3.11 - 3.13 / Apple M2 8Go
 # =============================================================================
 # Installation : pip install -r requirements.txt
 # =============================================================================
@@ -8,103 +8,102 @@
 # -----------------------------------------------------------------------------
 # COUCHE 1 — API & Configuration
 # -----------------------------------------------------------------------------
-fastapi==0.115.5              # Framework API async
-uvicorn[standard]==0.32.1     # Serveur ASGI pour FastAPI
-pydantic==2.10.2              # Validation des données
-pydantic-settings==2.6.1      # Lecture du .env avec Pydantic
-python-multipart==0.0.17      # Upload de fichiers dans FastAPI
-python-dotenv==1.0.1          # Lecture .env (backup)
-httpx==0.28.0                 # Client HTTP async (tests FastAPI)
+fastapi>=0.115.5
+uvicorn[standard]>=0.32.1
+pydantic>=2.10.2
+pydantic-settings>=2.6.1
+email-validator>=2.2.0
+python-multipart>=0.0.17
+python-dotenv>=1.0.1
+httpx>=0.28.0
+typing_extensions>=4.12.0
 
 # -----------------------------------------------------------------------------
 # COUCHE 2 — Base de données relationnelle
 # -----------------------------------------------------------------------------
-sqlalchemy==2.0.36            # ORM Python
-asyncpg==0.30.0               # Driver PostgreSQL async (FastAPI)
-psycopg2-binary==2.9.10       # Driver PostgreSQL sync (Alembic)
-alembic==1.14.0               # Migrations de base de données
+sqlalchemy>=2.0.36
+asyncpg>=0.30.0
+psycopg2-binary>=2.9.10
+alembic>=1.14.0
 
 # -----------------------------------------------------------------------------
 # COUCHE 3 — Stockage fichiers (MinIO / S3)
 # -----------------------------------------------------------------------------
-boto3==1.35.74                # Client AWS S3 compatible MinIO
-minio==7.2.11                 # Client MinIO officiel Python
+boto3>=1.35.74
+minio>=7.2.11
 
 # -----------------------------------------------------------------------------
 # COUCHE 4 — Traitement PDF et OCR
 # -----------------------------------------------------------------------------
-pymupdf==1.24.14              # Extraction texte/images/tableaux depuis PDF
-pymupdf4llm==0.0.17           # Export PDF en Markdown pour LLM
-pillow==11.0.0                # Traitement d'images Python
-easyocr==1.7.2                # OCR multilingue (FR + EN) sans GPU requis
-# tesseract est géré via Docker (pas pip)
+pymupdf>=1.24.14
+pymupdf4llm>=0.0.17
+pillow>=11.0.0
+easyocr>=1.7.2
 
 # -----------------------------------------------------------------------------
 # COUCHE 5 — LangChain & LangGraph
 # -----------------------------------------------------------------------------
-langchain==0.3.9              # Framework LLM
-langchain-community==0.3.9    # Intégrations communautaires
-langchain-ollama==0.2.1       # Intégration Ollama
-langgraph==0.2.56             # Workflow agentique avec états
-langchain-qdrant==0.2.0       # Intégration Qdrant pour LangChain
+langchain>=0.3.9
+langchain-community>=0.3.9
+langchain-ollama>=0.2.1
+langgraph>=0.2.56
+langchain-qdrant>=0.2.0
 
 # -----------------------------------------------------------------------------
 # COUCHE 6 — Embeddings et modèles locaux
 # -----------------------------------------------------------------------------
-sentence-transformers==3.3.1  # BGE-M3 + CLIP multilingue
-torch==2.5.1                  # Backend PyTorch pour les modèles
-# Note M2 : torch utilise MPS (Metal Performance Shaders) automatiquement
-transformers==4.46.3          # Modèles HuggingFace (reranker)
-FlagEmbedding==1.3.3          # BGE-M3 optimisé (dense + sparse + colbert)
+sentence-transformers>=3.3.1
+torch>=2.5.1
+transformers>=4.46.3
+FlagEmbedding>=1.3.3
 
 # -----------------------------------------------------------------------------
 # COUCHE 7 — Base vectorielle Qdrant
 # -----------------------------------------------------------------------------
-qdrant-client==1.12.1         # Client Python Qdrant
+qdrant-client>=1.12.1
 
 # -----------------------------------------------------------------------------
 # COUCHE 8 — MCP (Model Context Protocol)
 # -----------------------------------------------------------------------------
-fastmcp==2.3.3                # Framework serveur MCP Python
-mcp==1.1.0                    # SDK MCP officiel
+fastmcp>=2.3.3
+mcp>=1.1.0
 
 # -----------------------------------------------------------------------------
 # COUCHE 9 — Interface utilisateur
 # -----------------------------------------------------------------------------
-streamlit==1.40.2             # Interface web
+streamlit>=1.40.2
 
 # -----------------------------------------------------------------------------
 # COUCHE 10 — MLflow et tracking
 # -----------------------------------------------------------------------------
-mlflow==2.17.2                # Tracking expériences ML
-# Note : mlflow dépend de sqlalchemy et boto3 (déjà listés)
+mlflow>=2.17.2
 
 # -----------------------------------------------------------------------------
 # COUCHE 11 — Sécurité et auth
 # -----------------------------------------------------------------------------
-python-jose[cryptography]==3.3.0  # JWT tokens
-passlib[bcrypt]==1.7.4            # Hashage des mots de passe
-cryptography==43.0.3              # Primitives cryptographiques
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.1,<4.3.0
+cryptography>=43.0.3
 
 # -----------------------------------------------------------------------------
 # COUCHE 12 — Utilitaires
 # -----------------------------------------------------------------------------
-tenacity==9.0.0               # Retry automatique (appels LLM, Qdrant)
-rich==13.9.4                  # Logs colorés dans le terminal
-loguru==0.7.3                 # Logger avancé
-tqdm==4.67.1                  # Barres de progression
+tenacity>=9.0.0
+rich>=13.9.4
+loguru>=0.7.3
+tqdm>=4.67.1
 
 # -----------------------------------------------------------------------------
 # COUCHE 13 — Tests
 # -----------------------------------------------------------------------------
-pytest==8.3.4                 # Framework de tests
-pytest-asyncio==0.24.0        # Tests async
-pytest-cov==6.0.0             # Coverage des tests
-httpx==0.28.0                 # Client HTTP pour tests FastAPI (déjà listé)
+pytest>=8.3.4
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
 
 # -----------------------------------------------------------------------------
 # COUCHE 14 — Évaluation RAG
 # -----------------------------------------------------------------------------
-numpy==2.1.3                  # Calculs matriciels
-scikit-learn==1.5.2           # Métriques ML classiques
-ragas==0.2.6                  # Évaluation RAG (Faithfulness, Answer Relevancy)
+numpy>=2.1.3
+scikit-learn>=1.5.2
+ragas>=0.2.6

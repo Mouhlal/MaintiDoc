@@ -79,7 +79,8 @@ async def check_postgres() -> ServiceStatus:
         )
         cur = conn.cursor()
         cur.execute("SELECT version()")
-        version = cur.fetchone()[0].split(" ")[0] + " " + cur.fetchone()[0].split(" ")[1] if False else "PostgreSQL OK"
+        row = cur.fetchone()[0]
+        version = " ".join(row.split(" ")[:2]) if row else "PostgreSQL OK"
         conn.close()
         latency = round((time.monotonic() - start) * 1000, 2)
         return ServiceStatus(name="postgres", status="ok", latency_ms=latency, detail=version)
