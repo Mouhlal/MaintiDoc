@@ -139,7 +139,7 @@ pull-models: ## Télécharger les modèles Ollama (LLM + VLM)
 .PHONY: api
 api: ## Lancer le backend FastAPI (développement)
 	@echo "$(YELLOW)Démarrage FastAPI sur http://127.0.0.1:8001$(RESET)"
-	$(PYTHON) -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8001
+	$(PYTHON) -m uvicorn backend.main:app --reload --reload-dir backend --host 127.0.0.1 --port 8001
 
 .PHONY: ui
 ui: ## Lancer l'interface Streamlit
