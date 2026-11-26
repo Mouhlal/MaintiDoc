@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir fastmcp==2.3.3 mcp==1.1.0 sqlalchemy==2.0.36 asyncpg==0.30.0 pydantic-settings==2.6.1 loguru==0.7.3
+
+COPY backend/ ./backend/
+COPY mcp_server/ ./mcp_server/
+
+CMD ["python", "mcp_server/main.py"]
