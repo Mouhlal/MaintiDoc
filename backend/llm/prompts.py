@@ -90,6 +90,7 @@ INSTRUCTIONS :
   équipement concerné, actions suggérées selon la documentation, et sources de référence.
 - Rappelle EXPLICITEMENT que ce brouillon doit être confirmé par un humain avant création.
 - N'invente aucune information absente du contexte fourni.
+- Si aucune source documentaire n'est fournie, écris "Aucune source documentaire indexée" et n'invente JAMAIS de nom de document ou de numéro de page.
 - Utilise un vocabulaire technique approprié à la maintenance industrielle.
 
 FORMAT DE SORTIE :

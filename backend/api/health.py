@@ -102,7 +102,7 @@ async def check_minio() -> ServiceStatus:
                 access_key=settings.minio_root_user,
                 secret_key=settings.minio_root_password,
                 secure=settings.minio_secure,
-                http_client=urllib3.PoolManager(timeout=urllib3.Timeout(connect=2.0, read=5.0), retries=1),
+                http_client=urllib3.PoolManager(timeout=urllib3.Timeout(connect=3.0, read=15.0), retries=1),
             )
             return client.list_buckets()
 
