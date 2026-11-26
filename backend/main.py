@@ -72,8 +72,8 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️  Qdrant non disponible : {e} (lance 'make up')")
 
-    logger.info(f"📡 API disponible sur : http://localhost:8000")
-    logger.info(f"📚 Documentation     : http://localhost:8000/docs")
+    logger.info(f"📡 API disponible sur : http://127.0.0.1:8001")
+    logger.info(f"📚 Documentation     : http://127.0.0.1:8001/docs")
 
     yield  # ← L'application tourne ici
 

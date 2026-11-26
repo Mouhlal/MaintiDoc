@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1. Docker Up (Qdrant + Postgres + MinIO)",
+      "type": "shell",
+      "command": "docker compose up -d qdrant postgres minio && docker compose ps",
+      "problemMatcher": []
+    },
+    {
+      "label": "2. Init DB & Qdrant",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python scripts/setup_db.py && ${workspaceFolder}/.venv/bin/python scripts/setup_qdrant.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "3. Lancer Tests (Pytest)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/pytest tests/ -v",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "4. Lancer Évaluation RAG",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/python evaluation/run_evaluation.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "5. Démarrer API FastAPI (8001)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/uvicorn backend.main:app --reload --host 127.0.0.1 --port 8001",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "6. Démarrer Streamlit UI (8501)",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/bin/streamlit run frontend/app.py --server.port 8501 --server.address 127.0.0.1",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
