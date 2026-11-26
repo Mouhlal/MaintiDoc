@@ -65,9 +65,9 @@ up: ## Démarrer tous les services Docker (Qdrant, PostgreSQL, MinIO, MLflow)
 	@echo "$(YELLOW)Démarrage de l'infrastructure...$(RESET)"
 	docker compose up -d
 	@echo "$(GREEN)✅ Services démarrés$(RESET)"
-	@echo "   Qdrant  : http://localhost:6333/dashboard"
-	@echo "   MinIO   : http://localhost:9001"
-	@echo "   MLflow  : http://localhost:5000"
+	@echo "   Qdrant  : http://127.0.0.1:6333/dashboard"
+	@echo "   MinIO   : http://127.0.0.1:9101"
+	@echo "   MLflow  : http://127.0.0.1:5000"
 
 .PHONY: down
 down: ## Arrêter les services Docker (données conservées)
@@ -138,8 +138,8 @@ pull-models: ## Télécharger les modèles Ollama (LLM + VLM)
 # -----------------------------------------------------------------------------
 .PHONY: api
 api: ## Lancer le backend FastAPI (développement)
-	@echo "$(YELLOW)Démarrage FastAPI sur http://localhost:8000$(RESET)"
-	$(PYTHON) -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+	@echo "$(YELLOW)Démarrage FastAPI sur http://127.0.0.1:8001$(RESET)"
+	$(PYTHON) -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8001
 
 .PHONY: ui
 ui: ## Lancer l'interface Streamlit

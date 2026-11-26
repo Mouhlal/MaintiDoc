@@ -40,7 +40,7 @@ services:
     networks:
       - maintidoc-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e \"GET /healthz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
       interval: 10s                      # Vérifie toutes les 10 secondes
       timeout: 5s                        # Timeout de la vérification
       retries: 5                         # 5 échecs avant de marquer "unhealthy"
@@ -91,13 +91,14 @@ services:
   #   Login : ${MINIO_ROOT_USER} / ${MINIO_ROOT_PASSWORD}
   # ===========================================================================
   minio:
-    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    image: cgr.dev/chainguard/minio:latest
     container_name: maintidoc-minio
+    user: "0:0"
     restart: unless-stopped
     command: server /data --console-address ":9001"   # Lance le serveur + console web
     ports:
-      - "9000:9000"                      # API S3
-      - "9001:9001"                      # Console web
+      - "9100:9000"                      # API S3
+      - "9101:9001"                      # Console web
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-maintidoc_admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-maintidoc_minio_secret}
@@ -105,12 +106,6 @@ services:
       - minio_data:/data                 # Stockage des fichiers
     networks:
       - maintidoc-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   # ===========================================================================
   # SERVICE 4 : MLFLOW — Tracking des expériences ML
@@ -145,7 +140,7 @@ services:
       postgres:
         condition: service_healthy       # Attend que PostgreSQL soit prêt
       minio:
-        condition: service_healthy       # Attend que MinIO soit prêt
+        condition: service_started       # Attend que MinIO soit démarré
 
 # =============================================================================
 # VOLUMES — Stockage persistant

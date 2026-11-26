@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+import backend.mcp.client
 from backend.agent.edges import route_after_approval, route_after_intent, route_after_verification
 from backend.agent.graph import resume_ticket_approval, run_agent
 from backend.llm.llm_client import LLMResponse

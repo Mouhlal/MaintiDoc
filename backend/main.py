@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
     # 2. Vérification Qdrant (non bloquante en dev)
     try:
         from qdrant_client import QdrantClient
-        client = QdrantClient(url=settings.qdrant_url, timeout=5)
+        client = QdrantClient(url=settings.qdrant_url, timeout=5, check_compatibility=False)
         collections = [c.name for c in client.get_collections().collections]
         logger.info(f"✅ Qdrant connecté — Collections : {collections}")
     except Exception as e:

@@ -32,6 +32,7 @@ class QdrantStore:
             url=url or settings.qdrant_url,
             api_key=api_key if api_key is not None else settings.qdrant_api_key,
             timeout=15,
+            check_compatibility=False,
         )
 
     def ensure_collection(self, collection: str, vector_size: int) -> None:

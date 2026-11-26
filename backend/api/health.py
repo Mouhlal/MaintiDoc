@@ -10,6 +10,7 @@ Endpoints :
     GET /api/v1/health/detailed → Statut détaillé par service
 """
 
+import asyncio
 import time
 from typing import Literal
 
@@ -51,7 +52,7 @@ async def check_qdrant() -> ServiceStatus:
     start = time.monotonic()
     try:
         from qdrant_client import QdrantClient
-        client = QdrantClient(url=settings.qdrant_url, timeout=3)
+        client = QdrantClient(url=settings.qdrant_url, timeout=3, check_compatibility=False)
         collections = client.get_collections().collections
         latency = round((time.monotonic() - start) * 1000, 2)
         return ServiceStatus(
@@ -92,14 +93,20 @@ async def check_minio() -> ServiceStatus:
     """Vérifie la connexion à MinIO."""
     start = time.monotonic()
     try:
+        import urllib3
         from minio import Minio
-        client = Minio(
-            settings.minio_endpoint,
-            access_key=settings.minio_root_user,
-            secret_key=settings.minio_root_password,
-            secure=settings.minio_secure,
-        )
-        buckets = client.list_buckets()
+
+        def _check():
+            client = Minio(
+                settings.minio_endpoint,
+                access_key=settings.minio_root_user,
+                secret_key=settings.minio_root_password,
+                secure=settings.minio_secure,
+                http_client=urllib3.PoolManager(timeout=urllib3.Timeout(connect=2.0, read=5.0), retries=1),
+            )
+            return client.list_buckets()
+
+        buckets = await asyncio.to_thread(_check)
         latency = round((time.monotonic() - start) * 1000, 2)
         return ServiceStatus(
             name="minio",
@@ -159,13 +166,15 @@ async def health_detailed():
     Plus lent (fait des appels réseau réels).
     Utilisé pour le monitoring et le debugging.
     """
-    # Vérification de tous les services
-    services = [
-        await check_qdrant(),
-        await check_postgres(),
-        await check_minio(),
-        await check_ollama(),
-    ]
+    # Vérification parallèle de tous les services
+    services = list(
+        await asyncio.gather(
+            check_qdrant(),
+            check_postgres(),
+            check_minio(),
+            check_ollama(),
+        )
+    )
 
     # Statut global
     statuses = [s.status for s in services]

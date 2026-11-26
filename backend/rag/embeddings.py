@@ -13,7 +13,6 @@ from __future__ import annotations
 import io
 from typing import Any
 
-import torch
 from loguru import logger
 from PIL import Image
 
@@ -39,11 +38,16 @@ class EmbeddingManager:
     @staticmethod
     def _detect_device() -> str:
         """Détecte le meilleur device disponible (MPS sur Apple Silicon, sinon CPU)."""
-        if torch.backends.mps.is_available():
-            logger.info("Accélération Apple MPS disponible pour PyTorch")
-            return "mps"
-        if torch.cuda.is_available():
-            return "cuda"
+        try:
+            import torch
+
+            if torch.backends.mps.is_available():
+                logger.info("Accélération Apple MPS disponible pour PyTorch")
+                return "mps"
+            if torch.cuda.is_available():
+                return "cuda"
+        except ImportError:
+            pass
         return "cpu"
 
     def _get_text_model(self) -> Any:
