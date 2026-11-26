@@ -147,20 +147,36 @@ app.add_middleware(
 # Pour l'instant, seul le healthcheck est disponible.
 
 from backend.api.health import router as health_router
+from backend.api.auth import router as auth_router
+from backend.api.documents import router as documents_router
+from backend.api.chat import router as chat_router
+from backend.api.tickets import router as tickets_router
 
 app.include_router(
     health_router,
     prefix="/api/v1",
     tags=["Health"],
 )
-
-# Les routers suivants seront décommentés au fil des phases :
-# from backend.api.documents import router as documents_router
-# from backend.api.chat import router as chat_router
-# from backend.api.tickets import router as tickets_router
-# app.include_router(documents_router, prefix="/api/v1/documents", tags=["Documents"])
-# app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chat"])
-# app.include_router(tickets_router, prefix="/api/v1/tickets", tags=["Tickets"])
+app.include_router(
+    auth_router,
+    prefix="/api/v1/auth",
+    tags=["Authentification"],
+)
+app.include_router(
+    documents_router,
+    prefix="/api/v1/documents",
+    tags=["Documents"],
+)
+app.include_router(
+    chat_router,
+    prefix="/api/v1/chat",
+    tags=["Chat"],
+)
+app.include_router(
+    tickets_router,
+    prefix="/api/v1/tickets",
+    tags=["Tickets & Équipements"],
+)
 
 
 # =============================================================================
