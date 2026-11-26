@@ -1,0 +1,177 @@
+# =============================================================================
+# MaintiDoc — Docker Compose
+# =============================================================================
+# Ce fichier définit l'infrastructure locale du projet.
+# Il lance 4 services : Qdrant, PostgreSQL, MinIO, MLflow.
+#
+# Commandes utiles :
+#   docker compose up -d          → Démarrer tous les services en arrière-plan
+#   docker compose down           → Arrêter et supprimer les conteneurs
+#   docker compose logs -f qdrant → Voir les logs d'un service en temps réel
+#   docker compose ps             → Voir l'état de chaque service
+# =============================================================================
+
+# Version du format Docker Compose
+# (omise dans les versions récentes, mais gardée pour la compatibilité)
+
+services:
+
+  # ===========================================================================
+  # SERVICE 1 : QDRANT — Base de données vectorielle
+  # ===========================================================================
+  # Rôle : stocker les embeddings (texte + images) et permettre la recherche
+  #        sémantique par similarité cosine.
+  #
+  # Ports :
+  #   6333 → API REST (qu'on utilisera depuis Python)
+  #   6334 → API gRPC (plus rapide, mais non utilisée dans le MVP)
+  # ===========================================================================
+  qdrant:
+    image: qdrant/qdrant:v1.9.2          # Version fixée pour la reproductibilité
+    container_name: maintidoc-qdrant
+    restart: unless-stopped              # Redémarre automatiquement sauf si arrêté manuellement
+    ports:
+      - "6333:6333"                      # REST API → accessible sur http://localhost:6333
+      - "6334:6334"                      # gRPC (non utilisé en MVP)
+    volumes:
+      - qdrant_data:/qdrant/storage      # Données persistantes (vecteurs, collections)
+    environment:
+      QDRANT__LOG_LEVEL: INFO
+    networks:
+      - maintidoc-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      interval: 10s                      # Vérifie toutes les 10 secondes
+      timeout: 5s                        # Timeout de la vérification
+      retries: 5                         # 5 échecs avant de marquer "unhealthy"
+      start_period: 20s                  # Attente initiale avant le premier check
+
+  # ===========================================================================
+  # SERVICE 2 : POSTGRESQL — Base de données relationnelle
+  # ===========================================================================
+  # Rôle : stocker les métadonnées des documents, les équipements, les tickets
+  #        et les utilisateurs.
+  #
+  # Port : 5432 (port PostgreSQL standard)
+  # ===========================================================================
+  postgres:
+    image: postgres:16-alpine            # Alpine = image légère (~50 Mo vs ~400 Mo)
+    container_name: maintidoc-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-maintidoc}        # Lecture depuis .env, défaut "maintidoc"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maintidoc_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-maintidoc_db}
+      PGDATA: /var/lib/postgresql/data/pgdata           # Dossier de stockage des données
+    volumes:
+      - postgres_data:/var/lib/postgresql/data          # Données persistantes
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro  # Script d'init au 1er démarrage
+    networks:
+      - maintidoc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-maintidoc} -d ${POSTGRES_DB:-maintidoc_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ===========================================================================
+  # SERVICE 3 : MINIO — Stockage de fichiers (compatible S3)
+  # ===========================================================================
+  # Rôle : stocker les PDF importés et les images extraites des documents.
+  #        Compatible avec l'API Amazon S3 → le code Python utilise boto3.
+  #
+  # Ports :
+  #   9000 → API S3 (utilisée depuis Python)
+  #   9001 → Interface web de gestion (pratique pour déboguer)
+  #
+  # Interface web : http://localhost:9001
+  #   Login : ${MINIO_ROOT_USER} / ${MINIO_ROOT_PASSWORD}
+  # ===========================================================================
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: maintidoc-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"   # Lance le serveur + console web
+    ports:
+      - "9000:9000"                      # API S3
+      - "9001:9001"                      # Console web
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-maintidoc_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-maintidoc_minio_secret}
+    volumes:
+      - minio_data:/data                 # Stockage des fichiers
+    networks:
+      - maintidoc-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ===========================================================================
+  # SERVICE 4 : MLFLOW — Tracking des expériences ML
+  # ===========================================================================
+  # Rôle : enregistrer les métriques d'évaluation du RAG (Recall@5, nDCG@5…),
+  #        les paramètres de fine-tuning et les versions des modèles.
+  #
+  # Port : 5000 → Interface web
+  # Interface web : http://localhost:5000
+  # ===========================================================================
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.17.2
+    container_name: maintidoc-mlflow
+    restart: unless-stopped
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://${POSTGRES_USER:-maintidoc}:${POSTGRES_PASSWORD:-maintidoc_secret}@postgres:5432/${POSTGRES_DB:-maintidoc_db}
+      --default-artifact-root s3://${MLFLOW_BUCKET:-maintidoc-mlflow}
+      --serve-artifacts
+    ports:
+      - "5000:5000"
+    environment:
+      # MLflow utilise MinIO comme backend S3 pour stocker les artefacts (modèles, plots)
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-maintidoc_admin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-maintidoc_minio_secret}
+    networks:
+      - maintidoc-network
+    depends_on:
+      postgres:
+        condition: service_healthy       # Attend que PostgreSQL soit prêt
+      minio:
+        condition: service_healthy       # Attend que MinIO soit prêt
+
+# =============================================================================
+# VOLUMES — Stockage persistant
+# =============================================================================
+# Les volumes Docker persistent MÊME après "docker compose down".
+# Pour effacer toutes les données : "docker compose down -v"
+# =============================================================================
+volumes:
+  qdrant_data:
+    name: maintidoc-qdrant-data
+  postgres_data:
+    name: maintidoc-postgres-data
+  minio_data:
+    name: maintidoc-minio-data
+
+# =============================================================================
+# RÉSEAU — Communication entre services
+# =============================================================================
+# Tous les services partagent ce réseau virtuel.
+# À l'intérieur du réseau, les services se parlent via leur nom :
+#   → postgres:5432 (et non localhost:5432)
+#   → qdrant:6333
+#   → minio:9000
+# Depuis ta machine, tu utilises localhost:PORT
+# =============================================================================
+networks:
+  maintidoc-network:
+    name: maintidoc-network
+    driver: bridge                       # Réseau bridge = isolation standard Docker
